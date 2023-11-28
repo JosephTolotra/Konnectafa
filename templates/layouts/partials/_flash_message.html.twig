@@ -1,0 +1,17 @@
+{% for type, messages in app.flashes %}
+    {% for message in messages %}
+      <script type="text/javascript">
+
+		function alerterror() {
+			swal({
+				text:"{{message}}",
+				icon:"{{type}}",
+				showCancelButton: true,
+
+			});
+		}
+				alerterror();
+	</script>
+    {% endfor %}
+    
+{% endfor %}

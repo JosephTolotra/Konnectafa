@@ -1,0 +1,116 @@
+{% extends "layouts/base.html.twig" %}
+{% block title 'Inscrire' %}
+
+{% block stylesheets %}
+ <link rel="stylesheet" href="{{asset('css/createuser.css')}}">
+{% endblock %}
+
+{% block body %}
+<div class="container">
+        <diV class="wrapperheader">
+                <img src="{{asset('image/logo-incription.png')}}" class="logo">
+        </diV>
+            <div class="wrapper">
+ <form method="POST" name="registration" enctype="multipart/form-data">
+
+  <div class="row">
+ <label id="userprofilelabel" for="userprofile"> Choissez votre Photo de profile</label>
+ <input type="file" id="userprofile" name="userprofile" class="userprofile">
+ </div>
+
+ <div class="row">
+ <div class="col-25">
+ <label class="label" for="username">Nom d'utilisateur</label>
+ </div>
+ <div class="col-75">
+ <input type="text" id="username" name="usernane" placeholder="votre nom d'utilisateur" required>
+ </div>
+ </div>
+
+ <div class="row">
+ <div class="col-25">
+ <label class="label" for="fullname">Nom</label>
+ </div>
+ <div class="col-75">
+ <input type="text" id="name" name="fullname" placeholder="Votre nom complet" required>
+ </div>
+ </div>
+
+ <div class="row">
+ <div class="col-25">
+ <label class="label" for="email">Email</label>
+ </div>
+ <div class="col-75">
+ <input type="text" id="email" name="email" placeholder="Entrer votre adresse email" required>
+ </div>
+ </div>
+
+ <div class="row">
+ <div class="col-25">
+ <label class="label" for="pwsd">Mot de passe</label>
+ </div>
+ <div class="col-75">
+ <input type="password" id="pwsd" name="plainpassword" placeholder="creer votre mot de passe" required>
+ </div>
+ </div>
+
+ <div class="row">
+ <div class="col-25">
+ <label class="label" for="cpwsd">Confirmer le mot de passe</label>
+ </div>
+ <div class="col-75">
+ <input type="password" id="cpwsd" name="cplainpassword" placeholder="Confirmer votre mot de passe" >
+ </div>
+ </div>
+ 
+ 
+ 
+ <div class="row">
+ <input type="submit" value="S'Inscrire">
+ </div>
+ </form>
+ </div>
+
+        <script type="text/javascript">
+            $(document).ready(function (){
+                $("form[name='registration']").validate({
+                    rules: {
+                        userprofile: "required",
+                        usernane: "required",
+                        email:{
+                            required: true,
+                            email: true
+
+                        },
+                        fullname:"required",
+                        plainpassword:{
+                            required:true,
+                            minlength: 6
+                        },
+                        cplainpassword:{
+                            minlength: 6,
+                            equalTo: '[name="plainpassword"]'
+                        }
+                    },
+                    messages:{
+                        userprofile: "Entrez votre photo de profile",
+                        usernane: "Entrez votre nom d'utilisateur",
+                        email:"entrez une addresse e-mail valide",
+                        fullname:"Entrez votre nom complet",
+                        plainpassword:{
+                            required:"donnez un mot de passe",
+                            minlength: "votre mot de passe doit etre au-mois 6 caractere"
+                        },
+                        cplainpassword:{
+                            minlength: "votre mot de passe doit etre au-mois 6 caractere",
+                            equalTo: "les deux mots de passe sont differents"
+
+                    }
+                },
+                    submitHandler: function(form) {
+                        form.submit();
+                }
+                });
+            });
+        </script>
+{% endblock %}

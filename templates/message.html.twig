@@ -1,0 +1,466 @@
+{% extends "layouts/base.html.twig" %}
+{% block title 'Home' %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{asset('css/homemessage.css')}}">
+  
+{% endblock %}
+
+{% block body %}
+   {# <h1>{{users}} </h1> #} 
+  
+{# {% for conversation in conversations %}
+     <article>
+     <h1> <a href="{{path('app_get_message',{'id':conversation.conversationId})}}">{{conversation.username}} </h1>
+     </article>
+ {% endfor %}#} 
+<div id="notification-area">
+</div>
+<div id="container">
+	<aside>
+		<header>
+			<button id="newmessage">Nouveau Message</button>
+		</header>
+
+
+
+        <ul class="Menu">
+        {% if othernonconversations is null   %}
+        <li>pas d'utilisateur</li>
+        {% else %}
+        {% for othernonconversation in othernonconversations %}
+            <li><img src="{{asset('image/'~othernonconversation.profilepicture)|imagine_filter('miniature_small')}}" class="status"><a href="#" class="linkusernew" id="{{othernonconversation.id}}">{{othernonconversation.username}}</a></li>
+        {% endfor %}
+        {% endif %}
+
+          </ul>
+
+		<ul id="conversationadd">
+        
+        {% for conversation in conversations %}
+			<li>
+				<div id="otherconversationdiv">
+                    <img src="{{asset('image/'~conversation.profilepicture)|imagine_filter('miniature')}}" alt="otherconversation_profile_picture" id="otherconversation_profile_picture">
+					<h2><a class="linkuser" id="{{conversation.conversationId}}" href="{{path('app_get_message',{'id':conversation.conversationId})}}">{{conversation.username}}</a></h2>
+                    
+				</div>
+			</li>
+		{% endfor %}	
+		</ul>
+        <div id="footdiv">
+			<h2 id="username">{{user.username}}</h2>
+            <img src="{{asset('image/'~user.profilepicture)|imagine_filter('miniature_hi')}}" alt="my_profile_picture" id="my_profile_picture">
+			<div id="divlogout"><a href="{{path('app_logout')}}" id="logout">Déconnexion</a></div>
+		</div>
+	</aside>
+	<main>
+		<header>
+			<img src="{{asset('image/logo.png')}}" alt="other_profile_picture" id="other_profile_picture">
+			<div>
+				<h2 id="Conversationwith">Commencer votre conversation</h2>
+				
+			</div>
+			<a href="#" id="delete"><img src="{{asset('image/delete.svg')}}" alt=""></a>
+		</header>
+		<ul id="chat">
+			
+		</ul>
+		<footer>
+			<textarea placeholder="Taper votre message"></textarea>
+			<button id="send">Envoyer</button>
+		</footer>
+	</main>
+</div>
+
+	<script type="text/javascript">
+        const socket = new WebSocket("ws://localhost:3001");
+
+        // variable globale ilaina
+        var otherUser;
+        var conversationId;
+        var pathother;
+        
+        //hide footer
+        $("footer").hide();
+
+        //list ny mbola tsy miresaka amiko
+         $(".Menu").hide();
+         $("#other_profile_picture").hide();
+         $("#delete").hide();
+
+         //event new message
+             $("#newmessage").click( function () {
+              
+              $(".Menu").slideToggle("normal");
+            });
+        
+
+       function notify(name,message){
+	let id = Math.random().toString(36).substr(2,10);
+	let n= $("<div> </div>").html("<p>Vous avez un nouveau message </p><p id='notificationmessage'> "+name+" : "+message+" </p>");
+	n.addClass("notification");
+	n.attr("id",id);
+	$("#notification-area").prepend(n);
+
+	setTimeout(()=>{
+      var notifications = document.getElementById("notification-area").getElementsByClassName("notification");
+      for(let i=0;i<notifications.length;i++){
+        if(notifications[i].getAttribute("id") == id){
+          notifications[i].remove();
+          break;
+        }
+      }
+    },5000);
+  
+}
+
+//mihaino ny conversation
+  function conversationListener(){
+      $(document).ready(function(){
+                            document.querySelectorAll('a.linkuser').forEach(function(link){
+                link.addEventListener('click',onClickBtn);
+            });
+
+            });
+  }
+
+  //mihaino hoan'ny delete message
+    function onDeleteMessageListener(){
+      $(document).ready(function(){
+                            document.querySelectorAll('a.deletemess').forEach(function(link){
+                link.addEventListener('click',onClickDeleteMessageBtn);
+            });
+
+            });
+  }
+
+  function deleteMyConversation(){
+                  var idprevious="#"+conversationId;
+                  $(idprevious).parents("li").remove();
+                  $("#chat").empty();
+                  //hide footer
+                  $("footer").hide();
+                  $("#other_profile_picture").hide();
+                  $("#delete").hide();
+                  $("#Conversationwith").text("Commencer votre conversation");
+
+  }
+  function deleteMyMessage(messageId){
+                  var idprevious="#"+messageId;
+                  $(idprevious).parents("li").remove();
+  }
+
+  function addMyNewConversation(userNewConversation,conversationid,pathnewconversation){
+       const messageHT = "<li><div><img src='"+pathnewconversation+"' alt='otherconversation_profile_picture' id='otherconversation_profile_picture'><h2><a class='linkuser' id='"+conversationid+"' href='/message/"+conversationid+"'>"+userNewConversation+"</a></h2></div></li>";
+        $("#conversationadd").append(messageHT);
+        }
+        
+  function addMyMessage(message,datemessage,path,messageId) {
+      //  console.log("tafiditra");
+        const messageHTML = "<li class='me'><div class='enteteme'><h3>"+datemessage+"</h3><a href='#'  id='"+messageId+"' class='deletemess'><img src='image/deletemess.svg' alt='deletemess'></a><h2>Moi</h2><img src='"+path+"' class='status blue'></div><div class='triangle'> </div><div class='message'>"+message+"</div></li>";
+        $("#chat").append(messageHTML); 
+    }
+
+        function addOtherMessage(name,message,datemessage,path,messageId) {
+        const messageHTML = "<li class='you'><div class='entete'><img src='"+path+"' class='status'><h2> "+name+" </h2><a href='#'  id='"+messageId+"' class='deletemess'><img src='image/deletemess.svg' alt='deletemess'></a><h3>"+datemessage+"</h3></div><div class='triangle'></div><div class='message'>"+message+"</div></li>";
+        $("#chat").append(messageHTML); 
+    }
+
+             
+        function scrollToBottom(){
+            document.getElementById('chat').scrollTop=document.getElementById('chat').scrollHeight;  
+        }
+
+
+     ////////////////////////////////////////////////////////////////////////////////////////////////
+        //manomboka eto ny websocket
+     ///////////////////////////////////////////////////////////////////////////////////////////////
+  
+    socket.addEventListener("open", function() {
+        console.log("CONNECTED");
+    });
+    socket.addEventListener("message", function(e) {
+        console.log(e.data);
+        try
+        {
+            const message = JSON.parse(e.data);
+            if (message.id == otherUser.idOtherUser && message.receiverId == {{user.id}} ){
+                console.log(message.messageId);
+                addOtherMessage(message.name,message.message,"En ce moment",message.pathotherimg,message.messageId);
+                scrollToBottom();
+                onDeleteMessageListener();
+            }
+            else if (message.id != otherUser.idOtherUser && message.receiverId == {{user.id}} ){
+                notify(message.name,message.message);
+            }
+            
+        }catch(e)
+        {
+            // Catch any errors
+            console.log(e);
+        }
+    });
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+        //mifarana eto ny websocket
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+    
+        function onClickDeleteMessageBtn(event){
+            event.preventDefault();
+            var messageId=parseInt($(this).attr("id"));
+           
+              swal({
+                  title:"Est-ce-que vous êtes sure?",
+                  text:"Vous voulez supprimez cette message",
+                  icon:"warning",
+                  buttons: ["Annulez","Oui"],
+                  dangerMode: true
+              })
+              .then((willDelete)=>{
+                  if(willDelete){
+                       deleteMessage(messageId);
+                  }
+              });
+
+        }
+
+        function onClickBtnNewConversation(event){
+            event.preventDefault();
+            $(".Menu").slideToggle("normal");
+            var userNewConversation=$(this).text();
+            var content=parseInt($(this).attr("id"));
+            var pathnewconversation=$(this).prev().attr("src").substr(51);
+            console.log(pathnewconversation);
+            $.ajax({
+					url:"/conversation",
+					method:"POST",
+					dataType:"json",
+					data:
+					{
+						otherUser: content
+					}})
+					.done(function(response){
+						console.log(response.conversationid);
+                        addMyNewConversation(userNewConversation,response.conversationid,pathnewconversation);
+                        conversationListener();
+					})
+					.fail(function(error){
+						console.log("error: "+error);
+					})
+					.always(function(){
+						console.log("requete finished");
+					});
+           
+
+            
+        }
+              function deleteConversation(){
+                  console.log("deleteConversation");
+
+                 
+
+                  $.ajax({
+					url:"/conversationdelete",
+					method:"POST",
+					dataType:"json",
+					data:
+					{
+                        conversationid: conversationId
+					}})
+					.done(function(response){
+						console.log(response);
+                        deleteMyConversation();
+					})
+					.fail(function(error){
+						console.log("error: "+error);
+					})
+					.always(function(){
+						console.log("requete finished");
+					});
+              }
+
+              function deleteMessage(messageId){
+                  $.ajax({
+					url:"/messagedelete",
+					method:"POST",
+					dataType:"json",
+					data:
+					{
+						messageId: messageId
+					}})
+					.done(function(response){
+						console.log(response.conversationid);
+                       deleteMyMessage(messageId);
+					})
+					.fail(function(error){
+						console.log("error: "+error);
+					})
+					.always(function(){
+						console.log("requete finished");
+					});
+        
+              }
+
+              function onClickBtn(event){
+                event.preventDefault();
+                $("#chat").empty();
+                
+
+                //backgroound
+                var idprevious="#"+conversationId;
+                $(idprevious).parents("li").removeClass("liclicked");
+                $(this).parents("li").addClass("liclicked");
+                
+                const url=$(this).attr("href");
+                var id=$(this).attr("id");
+                
+                conversationId=parseInt(id);
+                console.log(conversationId);
+
+                console.log(url);
+                axios.get(url).then(function (response){
+
+                        const  dataMessage=response.data;
+                        console.log(dataMessage);
+
+                        const dataMessagelength=Object.keys(dataMessage).length;
+                        
+                        console.log("id ao amin resultat message "+conversationId);
+                       // conversationId=parseInt(dataMessage[0].conversationId);
+
+                        var otherParticipant="/otherparticipant/"+conversationId;
+
+                        console.log("lengt object= "+dataMessagelength)
+                    //    console.log(dataMessage[0].dateMessage.substring(0,16));
+
+                    
+                          axios.get(otherParticipant).then(function (response){
+                              otherUser=response.data[0];
+                             // console.log(otherUser);
+
+
+                             pathother=otherUser.otherProfilepicture;
+                            
+                             console.log(pathother);
+                              $("#other_profile_picture").attr("src",pathother);
+                              $("#other_profile_picture").show();
+                              $("footer").show();
+                              $("#delete").show();
+
+                              $("#Conversationwith").text("Votre conversation avec "+otherUser.otherUsername);
+                              console.log("dataMessageLength  =  "+dataMessagelength);
+
+                              //start for
+                              for(var i=0;i<dataMessagelength;i++){
+                                 // dataMessage[i].dateMessage
+                            
+                                if(dataMessage[i].userid == otherUser.idOtherUser){
+                                    console.log("idMessage: "+dataMessage[i].idMessage);
+                                    //console.log(dataMessage.contentMessage);
+                                    addOtherMessage(otherUser.otherUsername,dataMessage[i].contentMessage,dataMessage[i].dateMessage,pathother,dataMessage[i].idMessage);
+                                }else{
+/*//////////////////*/              console.log("idMessage: "+dataMessage[i].idMessage);
+                                    addMyMessage(dataMessage[i].contentMessage,dataMessage[i].dateMessage,"{{asset('image/'~user.profilepicture)|imagine_filter('miniature_small')}}",dataMessage[i].idMessage);
+                                     }
+                              
+                              }
+                              //end for
+                             scrollToBottom();
+                             onDeleteMessageListener();        
+                          });
+                           
+
+
+                          //console.log(dataMessage,otherParticipant);
+                }).catch(function(error){
+                    console.log(error);
+                });
+                
+            
+            }
+
+
+            //mihaino ny conversation
+            conversationListener();
+
+            //hoan ny creation nouveau conversation
+            document.querySelectorAll('a.linkusernew').forEach(function(link){
+                link.addEventListener('click',onClickBtnNewConversation);
+            });
+            
+
+            //delete conversation
+             $("#delete").click( function (event) {
+              event.preventDefault();
+              swal({
+                  title:"Est-ce-que vous êtes sure?",
+                  text:"Vous voulez supprimez cette conversation",
+                  icon:"warning",
+                  buttons: ["Annulez","Oui"],
+                  dangerMode: true
+              })
+              .then((willDelete)=>{
+                  if(willDelete){
+                      deleteConversation();
+                  }
+              });
+              
+            });
+
+
+            //manomoka eto ny an'ny button message
+            $("#send").click(function(){
+                console.log("cliked button");
+                console.log("ito fanomboana");
+                console.log(otherUser);
+                console.log(conversationId);
+
+                var content=$("textarea").val();
+                $("textarea").val("");
+
+         
+                console.log(content);
+                
+
+                $.ajax({
+					url:"/message",
+					method:"POST",
+					dataType:"json",
+					data:
+					{
+						contentmessage: content,
+                        conversationid: conversationId
+					}})
+					.done(function(response){
+                        console.log("eto no hiasa a");
+						console.log(response.messageId);
+
+                        //message alefa amin'ny websoket
+                        const message = {
+                            id: {{user.id}},
+                            receiverId: otherUser.idOtherUser,
+                            name: "{{user.username}}",
+                            pathotherimg: pathother,
+                            messageId: response.messageId,
+                            message: content
+                        };
+
+                        //mandefa ny message amin'ny websocket
+                        socket.send(JSON.stringify(message));
+                        console.log(socket);
+
+                        addMyMessage(content,"En ce moment","{{asset('image/'~user.profilepicture)|imagine_filter('miniature_small')}}",response.messageId);
+                        scrollToBottom();
+                        onDeleteMessageListener();
+					})
+					.fail(function(error){
+						console.log("error: "+error);
+					})
+					.always(function(){
+						console.log("requete finished");
+					});
+            });
+
+        
+	</script>
+	
+{% endblock %}

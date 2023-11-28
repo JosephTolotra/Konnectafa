@@ -1,0 +1,36 @@
+{% extends "layouts/base.html.twig" %}
+{% block title 'Log in' %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{asset('css/loginStyle.css')}}">
+  
+{% endblock %}
+{% block body %}
+<div class="container">
+      <div class="wrapper">
+        <div class="title"><img src="{{asset('image/Logo.png')}}" alt="chat app" id="logo"></div>
+
+<form method="post">
+<div class="row">
+            <img src="{{asset('image/user.svg')}}" class="imgusername"/>
+            <input type="text" name="username" id="username" placeholder="Nom d'utilisateur" required autofocus>
+</div>
+<div class="row">
+            <img src="{{asset('image/password.svg')}}" class="imgpassword"/>
+            <input type="password" name="password" id="password" placeholder="Mot de passe" required>
+</div>
+
+<div>
+<label id="labelremember" for="_remember_me">
+<input id="remember" type="checkbox" name="_remember_me" >
+Garder ma session active
+</label>
+</div>
+<input type="hidden" name="csrf_token" value="{{csrf_token('login_form')}}">
+<div class="row button">
+<input type="submit" value="Connexion">
+</div>
+<div class="signup-link">Pas encore membre? <a href="{{path('app_register')}}">S'inscrire</a></div>
+</form>
+</div>
+    </div>
+{% endblock %}

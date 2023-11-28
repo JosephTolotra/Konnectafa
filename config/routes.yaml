@@ -1,0 +1,67 @@
+#Route rehefa hande amin'ny home hisy ny chat
+app_home:
+    path: /
+    controller: App\Controller\HomeController::index
+    methods: [GET]
+
+#Route mande amin'ny login
+app_login:
+    path: /login
+    controller: App\Controller\SecurityController::login
+    methods: [GET,POST]
+
+#Route rehefa hideconnect
+app_logout:
+    path: /logout
+    controller: App\Controller\SecurityController::logout
+    methods: [GET]
+
+#Route hicreer user vaovao
+app_register:
+    path: /register
+    controller: App\Controller\SecurityController::register
+    methods: [GET]
+
+#Route hicreer user vaovao
+app_registerUser:
+    path: /register
+    controller: App\Controller\SecurityController::registerUser
+    methods: [POST]
+
+#Route rehefa hicreer conversation vaovao
+app_new_conversation:
+    path: /conversation
+    controller: App\Controller\ConversationController::newConversation
+    methods: [POST]
+
+#Hi delete conversation 
+app_delete_conversation:
+    path: /conversationdelete
+    controller: App\Controller\ConversationController::deleteConversation
+    methods: [GET,POST]
+
+
+#Route makany amin'ny new message
+app_new_message:
+    path: /message
+    controller: App\Controller\MessageController::newMessage
+    methods: [POST,GET]
+
+
+#Route maka ny other user
+app_get_other_participant:
+    path: /otherparticipant/{id<[0-9]+>}
+    controller: App\Controller\ParticipantController::getOtherParticipant
+    methods: [GET]
+
+#Route maka ny message anaty conversation
+app_get_message:
+    path: /message/{id<[0-9]+>}
+    controller: App\Controller\MessageController::getMessage
+    methods: [GET]
+
+#Route hidelete message 
+app_delete_message:
+    path: /messagedelete
+    controller: App\Controller\MessageController::deleteMessage
+    methods: [POST]
